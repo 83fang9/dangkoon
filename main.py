@@ -84,4 +84,20 @@ async def get_image(item_id):
 
     return Response(content=bytes.fromhex(image_bytes), media_type='image/*') #16진법을 가져와 이걸 사용가능하게 변환
 
+
+@app.post('/signup')
+def signup(id:Annotated[str,Form()], 
+           password:Annotated[str,Form()],
+           name:Annotated[str,Form()],
+           email:Annotated[str,Form()]):
+    
+    #서버저장 명령문
+    cur.execute(f"""
+                INSERT INTO users (id,name,email,password)
+                VALUES ('{id}','{name}','{email}','{password}')
+                """)
+    con.commit()
+    return '200'
+
+
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
