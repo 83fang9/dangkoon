@@ -3,6 +3,8 @@ from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
 from fastapi.staticfiles import StaticFiles
+from fastapi_login import LoginManager
+from fastapi_login.exceptions import InvalidCredentialsException
 from typing import Annotated
 import sqlite3
 
@@ -22,6 +24,48 @@ cur.execute(f"""
             """)
 
 app = FastAPI()
+
+#로그인 할떄 암호 디코딩함
+SERCRET = 'super-coding'
+manager = LoginManager(SERCRET, '/login') 
+
+
+@manager.user_loader()
+def query_user(id):
+    user = cur.execute(f"""
+                       SELECT * from users WHERE id='{id}'
+                       """).fetchone()
+    return user
+
+@app.post('/login')
+def login(id:Annotated[str,Form()], 
+           password:Annotated[str,Form()]):
+    #id로 유저를 찾아와라
+    user = query_user(id)
+    # print(user)
+    if not user:
+        raise InvalidCredentialsException
+    elif password != user['password']:
+        raise InvalidCredentialsException
+    return '200'
+
+
+@app.post('/signup')
+def signup(id:Annotated[str,Form()], 
+           password:Annotated[str,Form()],
+           name:Annotated[str,Form()],
+           email:Annotated[str,Form()]):
+    
+    #서버저장 명령문
+    cur.execute(f"""
+                INSERT INTO users (id,name,email,password)
+                VALUES ('{id}','{name}','{email}','{password}')
+                """)
+    con.commit()
+    return '200'
+
+
+
 
 #서버에 올릴때 클래스화 시켜 올려야 한다. 
 class Chatting(BaseModel):
