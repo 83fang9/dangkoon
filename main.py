@@ -1,4 +1,4 @@
-from fastapi import FastAPI,UploadFile,Form,Response
+from fastapi import FastAPI,UploadFile,Form,Response,Depends
 from pydantic import BaseModel
 from fastapi.responses import JSONResponse
 from fastapi.encoders import jsonable_encoder
@@ -31,9 +31,15 @@ manager = LoginManager(SERCRET, '/login')
 
 
 @manager.user_loader()
-def query_user(id):
+def query_user(data):
+    WHERE_STATEMENTS = f'id="{data}"'
+    if type(data) == dict:
+        WHERE_STATEMENTS = f'name="{data["name"]}"'
+
+    con.row_factory = sqlite3.Row 
+    cur = con.cursor()
     user = cur.execute(f"""
-                       SELECT * from users WHERE id='{id}'
+                       SELECT * from users WHERE {WHERE_STATEMENTS}
                        """).fetchone()
     return user
 
@@ -46,8 +52,17 @@ def login(id:Annotated[str,Form()],
     if not user:
         raise InvalidCredentialsException
     elif password != user['password']:
-        raise InvalidCredentialsException
-    return '200'
+        raise InvalidCredentialsException  #401서버 에러 표시해쥼 (비번틀리면)
+    
+    access_token = manager.create_access_token(data={
+        'sub': {
+        'id': user['id'],
+        'name': user['name'],
+        'email': user['email']
+        }
+    })
+    
+    return {'access_token':access_token}
 
 
 @app.post('/signup')
@@ -63,8 +78,6 @@ def signup(id:Annotated[str,Form()],
                 """)
     con.commit()
     return '200'
-
-
 
 
 #서버에 올릴때 클래스화 시켜 올려야 한다. 
@@ -105,7 +118,7 @@ async def create_item(image:UploadFile,
     return '200'
 
 @app.get('/items')
-async def get_items():
+async def get_items(user=Depends(manager)):  #유저인증된 사람만 됨
     con.row_factory = sqlite3.Row    #컬럼명 가져오는 문구
     cur = con.cursor()
     rows = cur.execute(f"""
@@ -127,21 +140,5 @@ async def get_image(item_id):
                              """).fetchone()[0]  #하나만 가져올떄 사용. 밖에있는 껍데기 하나를 벗겨주는 용도 
 
     return Response(content=bytes.fromhex(image_bytes), media_type='image/*') #16진법을 가져와 이걸 사용가능하게 변환
-
-
-@app.post('/signup')
-def signup(id:Annotated[str,Form()], 
-           password:Annotated[str,Form()],
-           name:Annotated[str,Form()],
-           email:Annotated[str,Form()]):
-    
-    #서버저장 명령문
-    cur.execute(f"""
-                INSERT INTO users (id,name,email,password)
-                VALUES ('{id}','{name}','{email}','{password}')
-                """)
-    con.commit()
-    return '200'
-
 
 app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")

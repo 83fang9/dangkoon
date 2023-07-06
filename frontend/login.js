@@ -1,32 +1,44 @@
 const form = document.querySelector("#login-form");
 
-const checkpassword = () => {
-    const formData = new FormData(form);   //new FormData 이다. 대문자 중요
-    const password1 = formData.get("password");
-    const password2 = formData.get("password2");
-
-
-
-    if (password1 === password2) {
-        return true;
-    }else return false;
-};
+let accessToken = null;
 
 const handlesubmit = async (event) => {
-    event.preventDefault()
-    const formData = new FormData(form);
-    // -> {id:'asjh', password:'1234'} 가져와서
-    const sha256Password = sha256(formData.get('password')); //해시태그화
-    // pasword는 sha256화 하고
-    formData.set('password',sha256Password);
+  event.preventDefault();
+  const formData = new FormData(form);
+  // -> {id:'asjh', password:'1234'} 가져와서
+  const sha256Password = sha256(formData.get("password")); //해시태그화
+  // pasword는 sha256화 하고
+  formData.set("password", sha256Password);
 
-    const res = await fetch('/login', {
-        method:'POST',
-        body: formData,
-    });
-    const data = await res.json();
-   
-}; 
+  const res = await fetch("/login", {
+    method: "POST",
+    body: formData,
+  });
+  const data = await res.json();
+  accessToken = data.access_token;
+  console.log("서버에서 보내온 access 코드는", accessToken); // data = res.status
 
+  const infoDiv = document.querySelector("#info");
+  infoDiv.innerText = "로그인되었습니다!!";
+  window.location.pathname = "/";
 
-form.addEventListener("submit", handlesubmit)
+  //   const btn = document.createElement("button");
+  //   btn.innerText = "상품가져오기";
+  //   btn.addEventListener("click", async () => {
+  //     const res = await fetch("/items",{
+  //         headers:{
+  //             Authorization: `Bearer ${accessToken}`,
+  //         },
+  // //     });
+  //     const data = await res.json();
+  //     console.log(data);
+  //   });
+  //   infoDiv.appendChild(btn);
+
+  //   if (res.status === 200) {
+  //     alert("로그인에 성공했습니다");
+  //     window.location.pathname = "/";
+  //   } else if (res.status === 401) alert("ID 혹은 비밀번호가 틀렸습니다");
+};
+
+form.addEventListener("submit", handlesubmit);

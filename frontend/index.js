@@ -23,7 +23,7 @@ const calcTime = (timestamp) => {
   if (hour > 0) return `${hour} 시간 전`;
   else if (minute > 0) return `${minute} 분전`;
   else if (second > 0) return `${second} 초전`;
-  else return  "방금 전";
+  else return "방금 전";
 };
 
 const renderData = (data) => {
@@ -75,6 +75,11 @@ const renderData = (data) => {
 
 const fetchList = async () => {
   const res = await fetch("/items");
+  if (res.status === 401) {
+    alert("로그인이 필요합니다.");
+    window.location.pathname = "/login.html";
+    return;
+  }
   const data = await res.json();
   renderData(data);
   //   console.log(data); -> 불러온 어레이 확인
