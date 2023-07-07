@@ -1,6 +1,6 @@
 const form = document.querySelector("#login-form");
 
-let accessToken = null;
+// let accessToken = null;
 
 const handlesubmit = async (event) => {
   event.preventDefault();
@@ -15,21 +15,25 @@ const handlesubmit = async (event) => {
     body: formData,
   });
   const data = await res.json();
-  accessToken = data.access_token;
+  const accessToken = data.access_token;
   console.log("서버에서 보내온 access 코드는", accessToken); // data = res.status
+  console.log(res.status);
+  window.localStorage.setItem("token", accessToken); //브라우저 로컬스토리지에 토큰 저장
+  alert("로그인되었습니다");
 
-  const infoDiv = document.querySelector("#info");
-  infoDiv.innerText = "로그인되었습니다!!";
+  //   const infoDiv = document.querySelector("#info");
+  //   infoDiv.innerText = "로그인되었습니다!!";
   window.location.pathname = "/";
 
   //   const btn = document.createElement("button");
   //   btn.innerText = "상품가져오기";
   //   btn.addEventListener("click", async () => {
-  //     const res = await fetch("/items",{
-  //         headers:{
-  //             Authorization: `Bearer ${accessToken}`,
-  //         },
-  // //     });
+  //     // 서버에서 엑세스토큰이 있어야 정보를 가져올 수 있기떄문에 헤더에 엑세스토큰을 넣어 보낸다
+  //     const res = await fetch("/items", {
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //       },
+  //     });
   //     const data = await res.json();
   //     console.log(data);
   //   });

@@ -1,5 +1,6 @@
 const form = document.querySelector("#signup-form");
 
+//password 비교하기
 const checkpassword = () => {
     const formData = new FormData(form);   //new FormData 이다. 대문자 중요
     const password1 = formData.get("password");
@@ -10,6 +11,7 @@ const checkpassword = () => {
     }else return false;
 };
 
+//회원 정보 제출 submit 로직
 const handlesubmit = async (event) => {
     event.preventDefault()
     const formData = new FormData(form);

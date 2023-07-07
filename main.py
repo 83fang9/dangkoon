@@ -105,7 +105,7 @@ async def create_item(image:UploadFile,
                 price:Annotated[int,Form()],
                 description:Annotated[str,Form()],
                 place:Annotated[str,Form()],
-                insertAt:Annotated[int,Form()]
+                insertAt:Annotated[int,Form()],
                 ):
     
     # print(image,title,price,description,place)
